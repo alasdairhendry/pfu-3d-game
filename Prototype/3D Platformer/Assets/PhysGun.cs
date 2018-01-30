@@ -25,6 +25,16 @@ public class PhysGun : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {   
         
+        //if(Input.GetMouseButtonDown(0))
+        //{
+        //    if (hasForced)
+        //        return;
+        //    if(!isLatched)
+        //    {
+        //        Fire();
+        //    }
+        //}
+
 		if(Input.GetMouseButton(0))
         {
             if (hasForced)
@@ -40,7 +50,8 @@ public class PhysGun : MonoBehaviour {
                 {
                     if(Input.GetMouseButtonDown(1))
                     {
-                        target.GetComponent<Rigidbody>().AddForce((beam.transform.forward).normalized * 15.0f, ForceMode.Impulse);
+                        target.GetComponent<Rigidbody>().AddForce((beam.transform.forward).normalized * target.GetComponent<PhysGunTarget>().pushForce, ForceMode.Impulse);
+                        target.GetComponent<PhysGunTarget>().wasPushed = true;
                         ResetBeam();
                         hasForced = true;
                     }
@@ -57,7 +68,6 @@ public class PhysGun : MonoBehaviour {
 
         Rotate();
         SeekerLatching();
-        SeekerControl();
 	}
 
     private void Fire()
@@ -65,14 +75,19 @@ public class PhysGun : MonoBehaviour {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if(Physics.Raycast(ray, out hit))
+
+        if (Physics.Raycast(ray, out hit))
         {
-            if(hit.collider.gameObject.GetComponent<PhysGunTarget>())
+            if (hit.collider.gameObject.GetComponent<PhysGunTarget>())
             {
-                isLatched = true;
-                target = hit.collider.gameObject.GetComponent<PhysGunTarget>();
-                target.OnStart();
-                return;
+                if (hit.collider.gameObject.GetComponent<PhysGunTarget>().IsTargetable)
+                {
+                    isLatched = true;
+                    target = hit.collider.gameObject.GetComponent<PhysGunTarget>();
+                    if (!target.IsTargetted)
+                        target.OnStart();
+                    return;
+                }
             }
             else
             {
@@ -80,29 +95,30 @@ public class PhysGun : MonoBehaviour {
                     target.OnFinish();
                 isLatched = false;
                 target = null;
-            }            
+            }
         }
+
     }
 
     private void BeamControl()
     {       
         if(!target)
         {
-            SetBeamNoTarget(beam.transform.position + (beam.transform.forward * 1.5f));            
+            DisplayBeamNoTarget(beam.transform.position + (beam.transform.forward * 1.5f));            
         }
         else
         {
-            SetBeamTarget(seeker.transform.position);
+            DisplayBeamTarget(seeker.transform.position);
         }
     }
 
-    private void SetBeamNoTarget(Vector3 targetPosition)
+    private void DisplayBeamNoTarget(Vector3 targetPosition)
     {
         lr.positionCount = 2;
         lr.SetPositions(new Vector3[] { beam.transform.position, targetPosition });
     }
 
-    private void SetBeamTarget(Vector3 targetPosition)
+    private void DisplayBeamTarget(Vector3 targetPosition)
     {
         Vector3 direction = (targetPosition - beam.transform.position);
         float distance = Vector3.Distance(targetPosition, beam.transform.position);
@@ -144,7 +160,7 @@ public class PhysGun : MonoBehaviour {
         Vector3 direction = (mousePosition - beam.transform.position).normalized;
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg * -1;
 
-        if (Vector3.Distance(mousePosition, beam.transform.position) <= 1.0f)
+        if (Vector3.Distance(mousePosition, beam.transform.position) <= 0.5f)
         {
             return;
         }
@@ -173,6 +189,13 @@ public class PhysGun : MonoBehaviour {
                     seekerOffsetLocked = true;
                     seekerOffset = beam.transform.position - seeker.transform.position;
                 }
+                else
+                {
+                    Vector3 direction = (beam.transform.position - seeker.transform.position).normalized;
+
+                    float scroll = Input.GetAxis("Mouse ScrollWheel");
+                    seekerOffset -= scroll * (beam.transform.forward).normalized * 5.0f;
+                }
             }
 
             if (!seekerIsLocked)
@@ -190,23 +213,9 @@ public class PhysGun : MonoBehaviour {
             {
                 if(seekerOffsetLocked)
                 {
-
-
-                    seeker.transform.position = Vector3.Lerp(seeker.transform.position, beam.transform.position - seekerOffset , Time.deltaTime * 10.0f);
-
-                    Vector3 allowedPosition = seeker.transform.position;
-                    if (!target.transformX)
-                        allowedPosition.x = target.transform.position.x;
-
-                    if (!target.transformY)
-                        allowedPosition.y = target.transform.position.y;
-
-                    if (!target.transformZ)
-                        allowedPosition.z = target.transform.position.z;
-
-                    seeker.transform.position = allowedPosition;
-
-                    target.Control(seeker.transform);
+                    // Move the seeker with the original offset relative to the beam's origin
+                    target.Control(seeker.transform, beam);
+                    
                 }
             }
         }
@@ -219,39 +228,14 @@ public class PhysGun : MonoBehaviour {
         }
     }
 
-    private void SeekerControl()
+    public void RemoveTarget()
     {
-        if(isLatched)
-        {
-            if(seekerIsLocked)
-            {
-                if(seekerOffsetLocked)
-                {
-                    Vector3 direction = (beam.transform.position - seeker.transform.position).normalized;
-
-                    float scroll = Input.GetAxis("Mouse ScrollWheel");
-                    seekerOffset -= scroll * (beam.transform.forward).normalized * 5.0f;
-                }
-            }
-        }
+        seekerIsLocked = false;
+        seekerOffsetLocked = false;
+        seekerOffset = Vector3.zero;
+        seekerHorizontalPull = 0.0f;
+        isLatched = false;
+        target = null;
+        hasForced = false;
     }
-
-    //private IEnumerator LerpToPoints()
-    //{
-    //    while(true)
-    //    {
-    //            lr.positionCount = points.Length;
-    //        foreach (Vector3 item in points)
-    //        {
-    //            lr.SetPositions(points);
-    //        }
-
-    //        for (int i = 0; i < points.Length; i++)
-    //        {
-    //            lr.SetPosition(i, Vector3.Lerp(beam.transform.position, points[i]))
-    //        }
-
-    //        yield return null;
-    //    }
-    //}
 }
