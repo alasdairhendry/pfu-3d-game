@@ -8,6 +8,7 @@ public class Target_Basketball : PhysGunTarget {
     protected override void Start()
     {
         base.Start();
+        GetComponent<Collider>().material = Resources.Load<PhysicMaterial>("PhysicsMaterials/Bouncey") as PhysicMaterial;
     }
 
     // Update is called once per frame
@@ -26,11 +27,15 @@ public class Target_Basketball : PhysGunTarget {
     public override void OnStart()
     {
         base.OnStart();
+
+        GetComponent<Collider>().material = null;
     }
 
     public override void OnFinish()
     {
         base.OnFinish();
+
+        GetComponent<Collider>().material = Resources.Load<PhysicMaterial>("PhysicsMaterials/Bouncey") as PhysicMaterial;
 
         if (wasPushed)
         {

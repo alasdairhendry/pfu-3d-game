@@ -45,18 +45,28 @@ public class PlayerMovement : MonoBehaviour {
             animator.SetBool("isWalking", false);
         }
 
-        if (h < 0)
+        if(h < 0)
         {
-            if (isGrounded)
-                animator.SetBool("isWalkingBack", true);
+            transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, -90.0f, transform.localEulerAngles.z);
         }
-        else
+        else if(h > 0)
         {
-            animator.SetBool("isWalkingBack", false);
+            transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, 90.0f, transform.localEulerAngles.z);
         }
+        //if (h < 0)
+        //{
+        //    if (isGrounded)
+        //        animator.SetBool("isWalkingBack", true);
+        //}
+        //else
+        //{
+        //    animator.SetBool("isWalkingBack", false);
+        //}
 
         if (isGrounded)
-            rb.velocity = new Vector3(h, 0, v).normalized * movementSpeed * Time.fixedDeltaTime;        
+        {
+            rb.velocity = new Vector3(h, 0, v).normalized * movementSpeed * Time.fixedDeltaTime;
+        }
     }
 
     private void Jump()

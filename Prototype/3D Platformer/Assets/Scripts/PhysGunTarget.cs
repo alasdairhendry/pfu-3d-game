@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class PhysGunTarget : MonoBehaviour {
-    
+
     [SerializeField] public bool transformX, transformY, transformZ = true;
 
     protected Vector3 previousPosition = Vector3.zero;
@@ -13,11 +13,42 @@ public class PhysGunTarget : MonoBehaviour {
 
     protected bool onFinishLateUpdate = false;
 
+    [HideInInspector] public bool useGravityStart = false;
     [HideInInspector] public bool movementStartX, movementStartY, movementStartZ = false;
     [HideInInspector] public bool movementFinishX, movementFinishY, movementFinishZ = false;
 
+    [HideInInspector] public bool useGravityFinish = true;
     [HideInInspector] public bool rotationStartX, rotationStartY, rotationStartZ = false;
     [HideInInspector] public bool rotationFinishX, rotationFinishY, rotationFinishZ = false;
+
+    public enum CollidableType { Red, Green, Blue, None }
+    [SerializeField] private CollidableType collidableType = CollidableType.None;
+    public CollidableType GetCollidableType { get { return collidableType; } }
+    public CollidableType SetCollidableType
+    {
+        set
+        {
+            switch (value)
+            {
+                case CollidableType.None:
+                    gameObject.layer = LayerMask.NameToLayer("Default");
+                    break;
+
+                case CollidableType.Blue:
+                    gameObject.layer = LayerMask.NameToLayer("ObjectBlue");
+                    break;
+
+                case CollidableType.Red:
+                    gameObject.layer = LayerMask.NameToLayer("ObjectRed");
+                    break;
+
+                case CollidableType.Green:
+                    gameObject.layer = LayerMask.NameToLayer("ObjectGreen");
+                    break;
+            }
+            collidableType = value;
+        }
+    }
 
     protected RigidbodyConstraints startConstraints;
     protected RigidbodyConstraints finishConstraints;
@@ -35,17 +66,17 @@ public class PhysGunTarget : MonoBehaviour {
     protected virtual void Start () {
         SetStartConstraints();
         SetFinishConstraints();
+        SetCollidableType = collidableType;
     }
 
     // Update is called once per frame
-    protected virtual void Update () {
-
-	}
+    protected virtual void Update () { }
 
     public virtual void OnStart()
     {
         onFinishLateUpdate = false;
         GetComponent<Rigidbody>().constraints = startConstraints;
+        GetComponent<Rigidbody>().useGravity = useGravityStart;
         wasPushed = false;
         isTargetted = true;
     }
@@ -54,6 +85,7 @@ public class PhysGunTarget : MonoBehaviour {
     {        
         onFinishLateUpdate = true;
         GetComponent<Rigidbody>().constraints = finishConstraints;
+        GetComponent<Rigidbody>().useGravity = useGravityFinish;
         isTargetted = false;
     }
 
@@ -66,8 +98,8 @@ public class PhysGunTarget : MonoBehaviour {
         relativePosition.y = (transformY) ? relativePosition.y : transform.position.y;
         relativePosition.z = (transformZ) ? relativePosition.z : transform.position.z;
 
-        Vector3 targetedPosition = Vector3.Lerp(seeker.transform.position, relativePosition, Time.deltaTime * 5.0f / GetComponent<Rigidbody>().mass);        
-        transform.position = targetedPosition;        
+        Vector3 targetedPosition = Vector3.Lerp(seeker.transform.position, relativePosition, Time.deltaTime * 5.0f / GetComponent<Rigidbody>().mass);
+        GetComponent<Rigidbody>().velocity = (targetedPosition - transform.position) * 55.0f;              
         seeker.transform.position = transform.position;
     }
 

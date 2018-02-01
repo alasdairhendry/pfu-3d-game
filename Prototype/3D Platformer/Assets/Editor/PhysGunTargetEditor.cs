@@ -20,6 +20,12 @@ public class PhysGunTargetEditor : Editor {
         EditorGUILayout.BeginVertical("Box");
 
         GUILayout.Label("On Start Constraints", EditorStyles.boldLabel);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Gravity", GUILayout.MinWidth(16), GUILayout.MaxWidth(64));
+        targ.useGravityStart = EditorGUILayout.Toggle(targ.useGravityStart, GUILayout.MaxWidth(16));
+        EditorGUILayout.EndHorizontal();
+
         EditorGUILayout.BeginHorizontal();
 
         GUILayout.Label("Position", GUILayout.MinWidth(16), GUILayout.MaxWidth(64));
@@ -95,6 +101,12 @@ public class PhysGunTargetEditor : Editor {
         EditorGUILayout.BeginVertical("Box");
 
         GUILayout.Label("On Finish Constraints", EditorStyles.boldLabel);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Gravity", GUILayout.MinWidth(16), GUILayout.MaxWidth(64));
+        targ.useGravityFinish = EditorGUILayout.Toggle(targ.useGravityFinish, GUILayout.MaxWidth(16));
+        EditorGUILayout.EndHorizontal();
+
         EditorGUILayout.BeginHorizontal();
 
         GUILayout.Label("Position", GUILayout.MinWidth(16), GUILayout.MaxWidth(64));
