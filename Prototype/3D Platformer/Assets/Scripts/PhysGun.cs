@@ -23,18 +23,7 @@ public class PhysGun : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {   
-        
-        //if(Input.GetMouseButtonDown(0))
-        //{
-        //    if (hasForced)
-        //        return;
-        //    if(!isLatched)
-        //    {
-        //        Fire();
-        //    }
-        //}
-
+	void Update () {          
 		if(Input.GetMouseButton(0))
         {
             if (hasForced)
@@ -156,20 +145,56 @@ public class PhysGun : MonoBehaviour {
 
     private void Rotate()
     {
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Input.mousePosition.z - Camera.main.transform.position.z));
-        Vector3 direction = (mousePosition - beam.transform.position).normalized;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg * -1;
+        //Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Input.mousePosition.z - Camera.main.transform.position.z));
+        //Debug.Log("Mouse Pos " + mousePosition);
+        Transform player = GameObject.FindGameObjectWithTag("Player").transform;
+        //Vector3 direction = new Vector3(0, 0, 0);
+        //float angle = 0.0f;
 
-        if (Vector3.Distance(mousePosition, beam.transform.position) <= 0.5f)
+        //if (player.transform.localEulerAngles.y == 270)
+        //{
+        //    direction = ((player.position + new Vector3(0, 1.5f, 0)) - mousePosition).normalized;
+        //    angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        //}
+        //else
+        //{
+        //    direction = (mousePosition - (player.position + new Vector3(0, 1.5f, 0))).normalized;
+        //    angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg * -1;
+        //}
+        //Debug.Log("direction " + direction);
+        ////if (Vector3.Distance(mousePosition, beam.transform.position) <= 0.5f)
+        ////{
+        ////    return;
+        ////}
+
+
+
+        //angle = Mathf.Clamp(angle, -55, 40);
+        //seekerHorizontalPull = Mathf.Lerp(-1, 1, Mathf.InverseLerp(-55, 40, angle));
+        //transform.localEulerAngles = new Vector3(angle, 0, 0);
+
+        Ray ray = StaticTypedMethods.ReturnActiveCamera().ScreenPointToRay(Input.mousePosition);
+        Plane plane = new Plane(Vector3.forward * -1, player.transform.position);
+        float distance = 0.0f;
+        plane.Raycast(ray, out distance);
+        ray.GetPoint(distance);
+        Vector3 direction = Vector3.zero;/* ray.GetPoint(distance) - player.position;*/
+        float angle = 0.0f;
+
+        if (player.transform.localEulerAngles.y == 270)
         {
-            return;
+            direction = player.position - (ray.GetPoint(distance) - new Vector3(0, 1.304f, 0));
+            angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        }
+        else
+        {
+            direction = (ray.GetPoint(distance) - new Vector3(0, 1.304f, 0)) - player.position;
+            angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg * -1.0f;
         }
 
         if (angle < -55 || angle > 40)
             return;
 
-        angle = Mathf.Clamp(angle, -55, 40);
-        seekerHorizontalPull = Mathf.Lerp(-1, 1, Mathf.InverseLerp(-55, 40, angle));
         transform.localEulerAngles = new Vector3(angle, 0, 0);
     }
 

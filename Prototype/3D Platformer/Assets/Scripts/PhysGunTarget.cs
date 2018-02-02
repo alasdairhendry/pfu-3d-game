@@ -6,20 +6,23 @@ using UnityEngine.Events;
 
 public class PhysGunTarget : MonoBehaviour {
 
+    [SerializeField] private string _name = "";
+    [SerializeField] private string interactionDescription = "";
     [SerializeField] public bool transformX, transformY, transformZ = true;
+    [SerializeField] public bool allowFreeze, allowPush = true;
 
     protected Vector3 previousPosition = Vector3.zero;
     protected Vector3 transformVelocity = Vector3.zero;
 
     protected bool onFinishLateUpdate = false;
 
-    [HideInInspector] public bool useGravityStart = false;
-    [HideInInspector] public bool movementStartX, movementStartY, movementStartZ = false;
-    [HideInInspector] public bool movementFinishX, movementFinishY, movementFinishZ = false;
+     public bool useGravityStart = false;
+     public bool movementStartX, movementStartY, movementStartZ = false;
+     public bool movementFinishX, movementFinishY, movementFinishZ = false;
 
-    [HideInInspector] public bool useGravityFinish = true;
-    [HideInInspector] public bool rotationStartX, rotationStartY, rotationStartZ = false;
-    [HideInInspector] public bool rotationFinishX, rotationFinishY, rotationFinishZ = false;
+     public bool useGravityFinish = true;
+     public bool rotationStartX, rotationStartY, rotationStartZ = false;
+     public bool rotationFinishX, rotationFinishY, rotationFinishZ = false;
 
     public enum CollidableType { Red, Green, Blue, None }
     [SerializeField] private CollidableType collidableType = CollidableType.None;
@@ -62,6 +65,9 @@ public class PhysGunTarget : MonoBehaviour {
     protected bool isTargetted = false;    
     public bool IsTargetted { get { return isTargetted; } }
 
+    private Transform seeker;
+    private GameObject beam;
+
     // Use this for initialization
     protected virtual void Start () {
         SetStartConstraints();
@@ -90,17 +96,10 @@ public class PhysGunTarget : MonoBehaviour {
     }
 
     public virtual void Control(Transform seeker, GameObject beam)
-    {        
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Input.mousePosition.z - Camera.main.transform.position.z));
-        relativePosition = new Vector3(mousePosition.x, mousePosition.y, beam.transform.position.z);
+    {
+        this.seeker = seeker;
+        this.beam = beam;
 
-        relativePosition.x = (transformX) ? relativePosition.x : transform.position.x;
-        relativePosition.y = (transformY) ? relativePosition.y : transform.position.y;
-        relativePosition.z = (transformZ) ? relativePosition.z : transform.position.z;
-
-        Vector3 targetedPosition = Vector3.Lerp(seeker.transform.position, relativePosition, Time.deltaTime * 5.0f / GetComponent<Rigidbody>().mass);
-        GetComponent<Rigidbody>().velocity = (targetedPosition - transform.position) * 55.0f;              
-        seeker.transform.position = transform.position;
     }
 
     Vector3 relativePosition = Vector3.zero;
@@ -108,6 +107,33 @@ public class PhysGunTarget : MonoBehaviour {
     protected virtual void FixedUpdate()
     {
         CalculateTransformVelocity();
+
+        if(IsTargetted)
+        {
+            if (seeker == null)
+                return;
+
+            if (beam == null) return;
+
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Input.mousePosition.z - Camera.main.transform.position.z));
+            relativePosition = new Vector3(mousePosition.x, mousePosition.y, beam.transform.position.z);
+
+            relativePosition.x = (transformX) ? relativePosition.x : transform.position.x;
+            relativePosition.y = (transformY) ? relativePosition.y : transform.position.y;
+            relativePosition.z = (transformZ) ? relativePosition.z : transform.position.z;
+
+            Vector3 targetedPosition = Vector3.Lerp(seeker.transform.position, relativePosition, Time.deltaTime * 5.0f / GetComponent<Rigidbody>().mass);
+            float dist = Vector3.Distance(targetedPosition, transform.position);
+            Vector3 newVelocity = Vector3.zero;
+            Debug.Log(dist);
+
+            if (dist > 0.075f)
+                newVelocity = (targetedPosition - transform.position) * (5.0f / Vector3.Distance(targetedPosition, transform.position));
+            else newVelocity = (targetedPosition - transform.position) * 35.0f;
+
+            GetComponent<Rigidbody>().velocity = newVelocity;
+            seeker.transform.position = transform.position;
+        }
     }
 
     protected virtual void LateUpdate()
@@ -208,6 +234,18 @@ public class PhysGunTarget : MonoBehaviour {
     protected virtual void Die()
     {
         Destroy(gameObject);
+    }
+
+    protected virtual void OnMouseEnter()
+    {
+        FindObjectOfType<InteractionCanvas>().Show("LMB", interactionDescription);
+        FindObjectOfType<InspectionCanvas>().Show(_name, transformX, transformY, transformZ, allowPush, allowFreeze);
+    }
+
+    protected virtual void OnMouseExit()
+    {
+        FindObjectOfType<InteractionCanvas>().Hide();
+        FindObjectOfType<InspectionCanvas>().Hide();
     }
 }
 

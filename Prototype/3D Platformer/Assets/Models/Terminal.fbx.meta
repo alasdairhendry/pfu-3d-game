@@ -1,15 +1,48 @@
 fileFormatVersion: 2
 guid: 7e0e19b0bb042b64183b00d0a956c3b6
-timeCreated: 1517447450
+timeCreated: 1517519103
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Button_Square
+    100004: Camera
+    100006: Cube
+    100008: DoorFrame
+    100010: DoorLeftSegment
+    100012: DoorRightSegment
+    100014: Lamp
+    100016: Terminal
     400000: //RootNode
+    400002: Button_Square
+    400004: Camera
+    400006: Cube
+    400008: DoorFrame
+    400010: DoorLeftSegment
+    400012: DoorRightSegment
+    400014: Lamp
+    400016: Terminal
     2300000: //RootNode
+    2300002: Button_Square
+    2300004: Cube
+    2300006: DoorFrame
+    2300008: DoorLeftSegment
+    2300010: DoorRightSegment
+    2300012: Terminal
     3300000: //RootNode
+    3300002: Button_Square
+    3300004: Cube
+    3300006: DoorFrame
+    3300008: DoorLeftSegment
+    3300010: DoorRightSegment
+    3300012: Terminal
     4300000: Terminal
+    4300002: Button_Square
+    4300004: DoorFrame
+    4300006: DoorRightSegment
+    4300008: DoorLeftSegment
+    4300010: Cube
   materials:
     importMaterials: 1
     materialName: 0
