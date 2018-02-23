@@ -15,7 +15,7 @@ public class PhysGun : MonoBehaviour {
     private PhysGunTarget target = null;
     private LineRenderer lr;
 
-    private bool hasForced = false;
+    private bool hasPushed = false;
 
 	// Use this for initialization
 	void Start () {
@@ -23,14 +23,23 @@ public class PhysGun : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {          
-		if(Input.GetMouseButton(0))
+	void Update () {   
+        if(Input.GetMouseButtonDown(0))
         {
-            if (hasForced)
+            if (hasPushed)
                 return;
 
             if (!isLatched)
                 Fire();
+        }
+        
+		if(Input.GetMouseButton(0))
+        {
+            //if (hasPushed)
+            //    return;
+
+            //if (!isLatched)
+            //    Fire();
             BeamControl();
 
             if(isLatched)
@@ -39,10 +48,14 @@ public class PhysGun : MonoBehaviour {
                 {
                     if(Input.GetMouseButtonDown(1))
                     {
-                        target.GetComponent<Rigidbody>().AddForce((beam.transform.forward).normalized * target.GetComponent<PhysGunTarget>().pushForce, ForceMode.Impulse);
-                        target.GetComponent<PhysGunTarget>().wasPushed = true;
+                        target.GetComponent<PhysGunTarget>().Push(beam.transform);                       
                         ResetBeam();
-                        hasForced = true;
+                        hasPushed = true;
+                    }
+                    else if(Input.GetKeyDown(KeyCode.F))
+                    {
+                        target.GetComponent<PhysGunTarget>().Freeze();
+                        ResetBeam();
                     }
                 }
             }
@@ -53,7 +66,7 @@ public class PhysGun : MonoBehaviour {
         }
 
         if (Input.GetMouseButtonUp(0))
-            hasForced = false;
+            hasPushed = false;
 
         Rotate();
         SeekerLatching();
@@ -261,6 +274,6 @@ public class PhysGun : MonoBehaviour {
         seekerHorizontalPull = 0.0f;
         isLatched = false;
         target = null;
-        hasForced = false;
+        hasPushed = false;
     }
 }

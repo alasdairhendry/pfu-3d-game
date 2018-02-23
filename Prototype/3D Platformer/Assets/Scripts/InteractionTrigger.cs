@@ -5,6 +5,7 @@ using UnityEngine.Events;
 
 public class InteractionTrigger : MonoBehaviour {
 
+    [SerializeField] private GameObject target;
     [SerializeField] private UnityEvent OnPlayerEnter;
     [SerializeField] private UnityEvent OnPlayerExit;
 
@@ -23,7 +24,7 @@ public class InteractionTrigger : MonoBehaviour {
         if (!isActive) return;
         if (hasInteracted && singleInteraction) return;
 
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject == target)
         {
             if(Input.GetKeyDown(interactKeycode))
             {
@@ -39,7 +40,7 @@ public class InteractionTrigger : MonoBehaviour {
     private void OnTriggerEnter(Collider other)
     {
         if (!isActive) return;
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject == target)
         {
             if (OnPlayerEnter != null)
                 OnPlayerEnter.Invoke();
@@ -58,7 +59,7 @@ public class InteractionTrigger : MonoBehaviour {
     {
         FindObjectOfType<InteractionCanvas>().Hide();
         if (!isActive) return;
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject == target)
         {
             if (OnPlayerExit != null)
                 OnPlayerExit.Invoke();

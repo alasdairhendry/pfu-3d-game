@@ -19,11 +19,100 @@ public class PhysGunTargetEditor : Editor {
 
         EditorGUILayout.BeginVertical("Box");
 
+        GUILayout.Label("Extents", EditorStyles.boldLabel);
+
+        EditorGUILayout.BeginHorizontal();
+
+        targ.useDefaultExtents = EditorGUILayout.Toggle(targ.useDefaultExtents, GUILayout.MaxWidth(16));
+        GUILayout.Label("Use Default Extents");
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+
+        targ.useTargetedExtents = EditorGUILayout.Toggle(targ.useTargetedExtents, GUILayout.MaxWidth(16));
+        GUILayout.Label("Use Targeted Extents");
+
+        EditorGUILayout.EndHorizontal();
+
+        if (targ.useDefaultExtents)
+        {
+            GUILayout.Label("Default");
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsDefaultX = EditorGUILayout.FloatField(targ.extentsDefaultX, GUILayout.MaxWidth(48));
+            GUILayout.Label("X", GUILayout.MaxWidth(32));
+
+            targ.extentsDefaultXOffset = EditorGUILayout.FloatField(targ.extentsDefaultXOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsDefaultY = EditorGUILayout.FloatField(targ.extentsDefaultY, GUILayout.MaxWidth(48));
+            GUILayout.Label("Y", GUILayout.MaxWidth(32));
+
+            targ.extentsDefaultYOffset = EditorGUILayout.FloatField(targ.extentsDefaultYOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsDefaultZ = EditorGUILayout.FloatField(targ.extentsDefaultZ, GUILayout.MaxWidth(48));
+            GUILayout.Label("Z", GUILayout.MaxWidth(32));
+
+            targ.extentsZDefaultOffset = EditorGUILayout.FloatField(targ.extentsZDefaultOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        if (targ.useTargetedExtents)
+        {
+            GUILayout.Label("Targeted");
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsTargetedX = EditorGUILayout.FloatField(targ.extentsTargetedX, GUILayout.MaxWidth(48));
+            GUILayout.Label("X", GUILayout.MaxWidth(32));
+
+            targ.extentsTargetedXOffset = EditorGUILayout.FloatField(targ.extentsTargetedXOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsTargetedY = EditorGUILayout.FloatField(targ.extentsTargetedY, GUILayout.MaxWidth(48));
+            GUILayout.Label("Y", GUILayout.MaxWidth(32));
+
+            targ.extentsTargetedYOffset = EditorGUILayout.FloatField(targ.extentsTargetedYOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+
+            targ.extentsTargetedZ = EditorGUILayout.FloatField(targ.extentsTargetedZ, GUILayout.MaxWidth(48));
+            GUILayout.Label("Z", GUILayout.MaxWidth(32));
+
+            targ.extentsZTargetedOffset = EditorGUILayout.FloatField(targ.extentsZTargetedOffset, GUILayout.MaxWidth(48));
+            GUILayout.Label("Offset");
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        EditorGUILayout.EndVertical();
+
+        EditorGUILayout.BeginVertical("Box");
+
         GUILayout.Label("On Start Constraints", EditorStyles.boldLabel);
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Gravity", GUILayout.MinWidth(16), GUILayout.MaxWidth(64));
         targ.useGravityStart = EditorGUILayout.Toggle(targ.useGravityStart, GUILayout.MaxWidth(16));
+        EditorUtility.SetDirty(targ);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();

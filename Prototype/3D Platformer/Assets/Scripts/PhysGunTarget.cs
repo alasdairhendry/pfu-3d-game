@@ -16,13 +16,27 @@ public class PhysGunTarget : MonoBehaviour {
 
     protected bool onFinishLateUpdate = false;
 
-     public bool useGravityStart = false;
-     public bool movementStartX, movementStartY, movementStartZ = false;
-     public bool movementFinishX, movementFinishY, movementFinishZ = false;
+    [HideInInspector] [SerializeField] public bool useDefaultExtents = false;
+    [HideInInspector] [SerializeField] public float extentsDefaultX, extentsDefaultY, extentsDefaultZ = 1.0f;
+    [HideInInspector] [SerializeField] public float extentsDefaultXOffset, extentsDefaultYOffset, extentsZDefaultOffset = 0.0f;
+    [SerializeField] private Vector3 worldExtentsDefaultMin = new Vector3(0, 0, 0);
+    [SerializeField] private Vector3 worldExtentsDefaultMax = new Vector3(1, 1, 1);
+    private bool worldExtentsDefaultSet = false;
 
-     public bool useGravityFinish = true;
-     public bool rotationStartX, rotationStartY, rotationStartZ = false;
-     public bool rotationFinishX, rotationFinishY, rotationFinishZ = false;
+    [HideInInspector] [SerializeField] public bool useTargetedExtents = false;
+    [HideInInspector] [SerializeField] public float extentsTargetedX, extentsTargetedY, extentsTargetedZ = 1.0f;
+    [HideInInspector] [SerializeField] public float extentsTargetedXOffset, extentsTargetedYOffset, extentsZTargetedOffset = 0.0f;
+    [SerializeField] private Vector3 worldExtentsTargetedMin = new Vector3(0, 0, 0);
+    [SerializeField] private Vector3 worldExtentsTargetedMax = new Vector3(1, 1, 1);
+    private bool worldExtentsTargetedSet = false;
+
+    [HideInInspector] [SerializeField] public bool useGravityStart = false;
+    [HideInInspector] [SerializeField] public bool movementStartX, movementStartY, movementStartZ = false;
+    [HideInInspector] [SerializeField] public bool movementFinishX, movementFinishY, movementFinishZ = false;
+    
+    [HideInInspector] [SerializeField] public bool useGravityFinish = true;
+    [HideInInspector] [SerializeField] public bool rotationStartX, rotationStartY, rotationStartZ = false;
+    [HideInInspector] [SerializeField] public bool rotationFinishX, rotationFinishY, rotationFinishZ = false;
 
     public enum CollidableType { Red, Green, Blue, None }
     [SerializeField] private CollidableType collidableType = CollidableType.None;
@@ -57,13 +71,15 @@ public class PhysGunTarget : MonoBehaviour {
     protected RigidbodyConstraints finishConstraints;
 
     [HideInInspector] public bool wasPushed = false;
-    public float pushForce = 45.0f;
+    [SerializeField] protected float pushForce = 45.0f;
 
     protected bool isTargetable = true;
     public bool IsTargetable { get { return isTargetable; } }
 
     protected bool isTargetted = false;    
     public bool IsTargetted { get { return isTargetted; } }
+
+    private bool isFrozen = false;
 
     private Transform seeker;
     private GameObject beam;
@@ -73,13 +89,37 @@ public class PhysGunTarget : MonoBehaviour {
         SetStartConstraints();
         SetFinishConstraints();
         SetCollidableType = collidableType;
+        SetWorldExtents();
     }
 
     // Update is called once per frame
-    protected virtual void Update () { }
+    protected virtual void Update () {
+        if (isTargetted)
+        {
+            if (worldExtentsTargetedSet)
+            {
+                if (useTargetedExtents)
+                {
+                    transform.position = transform.position.Clamp(worldExtentsTargetedMin, worldExtentsTargetedMax);
+                }
+            }
+        }
+        else
+        {
+            if (worldExtentsDefaultSet)
+            {
+                if (useDefaultExtents)
+                {
+                    transform.position = transform.position.Clamp(worldExtentsDefaultMin, worldExtentsDefaultMax);
+                }
+            }
+        }
+    }
 
     public virtual void OnStart()
     {
+        isFrozen = false;
+        wasPushed = false;
         onFinishLateUpdate = false;
         GetComponent<Rigidbody>().constraints = startConstraints;
         GetComponent<Rigidbody>().useGravity = useGravityStart;
@@ -98,8 +138,24 @@ public class PhysGunTarget : MonoBehaviour {
     public virtual void Control(Transform seeker, GameObject beam)
     {
         this.seeker = seeker;
-        this.beam = beam;
+        this.beam = beam;        
+    }
 
+    public virtual void Push(Transform beam)
+    {
+        if (allowPush)
+        {
+            GetComponent<Rigidbody>().AddForce((beam.forward).normalized * pushForce, ForceMode.Impulse);
+            wasPushed = true;
+        }        
+    }
+
+    public virtual void Freeze()
+    {
+        if(allowFreeze)
+        {
+            isFrozen = true;
+        }
     }
 
     Vector3 relativePosition = Vector3.zero;
@@ -107,6 +163,16 @@ public class PhysGunTarget : MonoBehaviour {
     protected virtual void FixedUpdate()
     {
         CalculateTransformVelocity();
+
+        if(isFrozen)
+        {
+            GetComponent<Rigidbody>().isKinematic = true;
+            return;
+        }
+        else
+        {
+            GetComponent<Rigidbody>().isKinematic = false;
+        }
 
         if(IsTargetted)
         {
@@ -238,6 +304,7 @@ public class PhysGunTarget : MonoBehaviour {
 
     protected virtual void OnMouseEnter()
     {
+        if (!IsTargetable) return;
         FindObjectOfType<InteractionCanvas>().Show("LMB", interactionDescription);
         FindObjectOfType<InspectionCanvas>().Show(_name, transformX, transformY, transformZ, allowPush, allowFreeze);
     }
@@ -246,6 +313,67 @@ public class PhysGunTarget : MonoBehaviour {
     {
         FindObjectOfType<InteractionCanvas>().Hide();
         FindObjectOfType<InspectionCanvas>().Hide();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (useDefaultExtents)
+        {
+            float x = (extentsDefaultX);
+            float y = (extentsDefaultY);
+            float z = (extentsDefaultZ);
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(transform.position + new Vector3(0.0f, 0.5f, 0.0f) - new Vector3(extentsDefaultXOffset, extentsDefaultYOffset, extentsZDefaultOffset), new Vector3(x, y, z));
+        }
+
+        if (useTargetedExtents)
+        {
+            float x = (extentsTargetedX);
+            float y = (extentsTargetedY);
+            float z = (extentsTargetedZ);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(transform.position + new Vector3(0.0f, 0.5f, 0.0f) - new Vector3(extentsTargetedXOffset, extentsTargetedYOffset, extentsZTargetedOffset), new Vector3(x, y, z));
+        }
+    }
+
+    private void SetWorldExtents()
+    {
+        if (useDefaultExtents)
+        {
+            Vector3 globalExtents = transform.TransformDirection(new Vector3(extentsDefaultX, extentsDefaultY, extentsDefaultZ) - new Vector3(extentsDefaultXOffset, extentsDefaultYOffset, extentsZDefaultOffset) + new Vector3(0.0f, 0.5f, 0.05f));
+            Vector3 centre = transform.position + new Vector3(0.0f, 0.5f, 0.0f) - new Vector3(extentsDefaultXOffset, extentsDefaultYOffset, extentsZDefaultOffset);
+            Vector3 size = new Vector3(extentsDefaultX, extentsDefaultY, extentsDefaultZ);
+            worldExtentsDefaultMin = centre - (size / 2) + new Vector3(transform.localScale.x / 2.0f, 0, transform.localScale.z / 2.0f);
+            worldExtentsDefaultMax = centre + (size / 2) - new Vector3(transform.localScale.x / 2.0f, transform.localScale.y, transform.localScale.z / 2.0f);
+            worldExtentsDefaultSet = true;
+        }
+
+        if(useTargetedExtents)
+        {
+            Vector3 globalExtents = transform.TransformDirection(new Vector3(extentsTargetedX, extentsTargetedY, extentsTargetedZ) - new Vector3(extentsTargetedXOffset, extentsTargetedYOffset, extentsZTargetedOffset) + new Vector3(0.0f, 0.5f, 0.05f));
+            Vector3 centre = transform.position + new Vector3(0.0f, 0.5f, 0.0f) - new Vector3(extentsTargetedXOffset, extentsTargetedYOffset, extentsZTargetedOffset);
+            Vector3 size = new Vector3(extentsTargetedX, extentsTargetedY, extentsTargetedZ);
+            worldExtentsTargetedMin = centre - (size / 2) + new Vector3(transform.localScale.x / 2.0f, 0, transform.localScale.z / 2.0f);
+            worldExtentsTargetedMax = centre + (size / 2) - new Vector3(transform.localScale.x / 2.0f, transform.localScale.y, transform.localScale.z / 2.0f);
+            worldExtentsTargetedSet = true;
+        }
+    }
+
+    public void UseDefaultExtents(bool state)
+    {
+        useDefaultExtents = state;
+    }
+
+    public void SetTargetable(bool state)
+    {
+        isTargetable = state;
+
+        if(!state)
+        {
+            RemoveSelfAsTarget();
+        }
     }
 }
 
